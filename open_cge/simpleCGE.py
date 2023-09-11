@@ -1,3 +1,7 @@
+# add directory 
+import sys
+sys.path.append('../')
+
 # import packages
 import numpy as np
 from pandas import Series, DataFrame
