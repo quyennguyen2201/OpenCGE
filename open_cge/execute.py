@@ -1,3 +1,8 @@
+# add directory 
+import sys
+sys.path.append('../')
+
+# import packages 
 import scipy.optimize as opt
 import numpy as np
 import pandas as pd
@@ -12,8 +17,8 @@ from open_cge import simpleCGE as cge
 
 # load social accounting matrix
 current_path = os.path.abspath(os.path.dirname(__file__))
-sam_path = os.path.join(current_path, 'SAM.xlsx')
-sam = pd.read_excel(sam_path, index_col=0, header=0)
+sam_path = os.path.join(current_path, 'SAM1.csv')
+sam = pd.read_csv(sam_path, index_col=0, header=0, encoding ='latin', on_bad_lines='skip')
 
 # declare sets
 u = ('AGR', 'OIL', 'IND', 'SER', 'LAB', 'CAP', 'LAND', 'NTR',
@@ -27,8 +32,8 @@ def check_square():
     '''
     this function tests whether the SAM is a square matrix.
     '''
-    sam_small = sam.iloc[:, :-3]
-    sam_small = sam_small.drop("TOTAL")
+    sam_small = sam
+    # sam_small = sam_small.drop("TOTAL")
     sam_small.to_numpy(dtype=None, copy=True)
     if not sam_small.shape[0] == sam_small.shape[1]:
         raise ValueError(f"SAM is not square. It has {sam_small.shape[0]} rows and {sam_small.shape[0]} columns")
@@ -38,8 +43,8 @@ def row_total():
     this function tests whether the row sums
     of the SAM equal the expected value.
     '''
-    sam_small = sam.iloc[:, :-3]
-    sam_small = sam_small.drop("TOTAL")
+    sam_small = sam
+    # sam_small = sam_small.drop("TOTAL")
     row_sum = sam_small.sum(axis=0)
     row_sum = pd.Series(row_sum)
     return row_sum
@@ -49,8 +54,8 @@ def col_total():
     this function tests whether column sums
     of the SAM equal the expected values.
     '''
-    sam_small = sam.iloc[:, :-3]
-    sam_small = sam_small.drop("TOTAL")
+    sam_small = sam
+    # sam_small = sam_small.drop("TOTAL")
     col_sum = sam_small.sum(axis=1)
     col_sum = pd.Series(col_sum)
     return col_sum
@@ -60,8 +65,8 @@ def row_col_equal():
     this function tests whether row sums
     and column sums of the SAM are equal.
     '''
-    sam_small = sam.iloc[:, :-3]
-    sam_small = sam_small.drop("TOTAL")
+    sam_small = sam
+    # sam_small = sam_small.drop("TOTAL")
     row_sum = sam_small.sum(axis=0)
     col_sum = sam_small.sum(axis=1)
     np.testing.assert_allclose(row_sum, col_sum)

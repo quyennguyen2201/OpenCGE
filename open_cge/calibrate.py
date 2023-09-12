@@ -182,13 +182,13 @@ class parameters(object):
         # average propensity to save
         self.ssp = (d.Sp0.values / (d.Ff0.sum() - d.Fsh0.values +
                                     d.Trf0.values))
-        self.ssp = np.asscalar(self.ssp)
+        self.ssp = np.ndarray(self.ssp)
         # direct tax rate
         self.taud = d.Td0.values / d.Ff0.sum()
-        self.taud = np.asscalar(self.taud)
+        self.taud = np.ndarray(self.taud)
         # transfer rate
         self.tautr = d.Trf0.values / d.Ff0['LAB']
-        self.tautr = np.asscalar(self.tautr)
+        self.tautr = np.ndarray(self.tautr)
         # government revenue
         self.ginc = d.Td0 + d.Tz0.sum() + d.Tm0.sum()
         # household income
