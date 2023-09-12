@@ -15,93 +15,95 @@ class model_data(object):
         model_data (data class): Data used in the CGE model
     '''
 
-    def __init__(self, sam, h, u, ind):
+    def __init__(self, sam, h, u, industry):
         # foreign saving
-        self.Sf0 = DataFrame(sam, index=['INV'], columns=['EXT'])
+        self.saving_foreign_0 = DataFrame(sam, index=['INV'], columns=['EXT'])
         # private saving
-        self.Sp0 = DataFrame(sam, index=['INV'], columns=['HOH'])
+        self.saving_private_0 = DataFrame(sam, index=['INV'], columns=['HOH'])
         # government saving/budget balance
-        self.Sg0 = DataFrame(sam, index=['INV'], columns=['GOV'])
+        self.saving_government_0 = DataFrame(sam, index=['INV'], columns=['GOV'])
         # repatriation of profits
-        self.Fsh0 = DataFrame(sam, index=['EXT'], columns=['HOH'])
+        self.profit_repatriation_0 = DataFrame(sam, index=['EXT'], columns=['HOH'])
         # capital stock
-        self.Kk0 = 10510
+        self.capital_0 = 10510
         # foreign-owned capital stock
-        self.Kf0 = 6414.35
+        self.capital_foreign_0 = 6414.35
         # domestically-owned capital stock
-        self.Kd0 = self.Kk0 - self.Kf0
+        self.capital_domestic_0 = self.capital_0 - self.capital_foreign_0
 
         # direct tax
-        self.Td0 = DataFrame(sam, index=['DTX'], columns=['HOH'])
+        self.tax_direct0 = DataFrame(sam, index=['DTX'], columns=['HOH'])
         # transfers
-        self.Trf0 = DataFrame(sam, index=['HOH'], columns=['GOV'])
+        self.transfer_0 = DataFrame(sam, index=['HOH'], columns=['GOV'])
         # production tax
-        self.Tz0 = DataFrame(sam, index=['ACT'], columns=list(ind))
+        self.tax_production_0 = DataFrame(sam, index=['ACT'], columns=list(industry))
          # import tariff
-        self.Tm0 = DataFrame(sam, index=['IDT'], columns=list(ind))
+        self.tariff_0 = DataFrame(sam, index=['IDT'], columns=list(industry))
 
         # the h-th factor input by the j-th firm
-        self.F0 = DataFrame(sam, index=list(h), columns=list(ind))
+        self.factor_0 = DataFrame(sam, index=list(h), columns=list(industry))
         # factor endowment of the h-th factor
-        self.Ff0 = self.F0.sum(axis=1)
+        self.factor_endowment_0 = self.factor_0.sum(axis=1)
         # composite factor (value added)
-        self.Y0 = self.F0.sum(axis=0)
+        self.composite_factor_0 = self.factor_0.sum(axis=0)
         # intermediate input
-        self.X0 = DataFrame(sam, index=list(ind), columns=list(ind))
+        self.intermediate_input_0 = DataFrame(sam, index=list(industry), columns=list(industry))
         # total intermediate input by the j-th sector
-        self.Xx0 = self.X0.sum(axis=0)
+        self.total_intermediate_input_0 = self.intermediate_input_0.sum(axis=0)
         # output of the i-th good
-        self.Z0 = self.Y0 + self.Xx0
+        self.output_0 = self.composite_factor_0 + self.total_intermediate_input_0
 
         # household consumption of the i-th good
-        self.Xp0 = DataFrame(sam, index=list(ind), columns=['HOH'])
+        self.consumption_household_0 = DataFrame(sam, index=list(industry), columns=['HOH'])
         # government consumption
-        self.Xg0 = DataFrame(sam, index=list(ind), columns=['GOV'])
+        self.consumption_government_0 = DataFrame(sam, index=list(industry), columns=['GOV'])
         # investment demand
-        self.Xv0 = DataFrame(sam, index=list(ind), columns=['INV'])
+        self.investment_demand_0 = DataFrame(sam, index=list(industry), columns=['INV'])
         # exports
-        self.E0 = DataFrame(sam, index=list(ind), columns=['EXT'])
-        self.E0 = self.E0['EXT']
+        self.export_0 = DataFrame(sam, index=list(industry), columns=['EXT'])
+        self.export_0 = self.export_0['EXT']
         # imports
-        self.M0 = DataFrame(sam, index=['EXT'], columns=list(ind))
-        self.M0 = self.M0.loc['EXT']
+        self.import_0 = DataFrame(sam, index=['EXT'], columns=list(industry))
+        self.import_0 = self.import_0.loc['EXT']
 
         # domestic supply/Armington composite good
-        self.Q0 = (self.Xp0['HOH'] + self.Xg0['GOV'] + self.Xv0['INV']
-                   + self.X0.sum(axis=1))
+        self.domestic_supply_0 = (self.consumption_household_0['HOH'] +
+                  self.consumption_government_0['GOV'] + self.investment_demand_0['INV']
+                   + self.intermediate_input_0.sum(axis=1))
         # production tax rate
-        tauz = self.Tz0 / self.Z0
+        production_tax_rate = self.tax_production_0 / self.output_0
         # domestic tax rate
-        self.D0 = (1 + tauz.loc['ACT']) * self.Z0 - self.E0
+        self.domestic_tax_rate = (1 + production_tax_rate.loc['ACT']) * self.output_0 - self.export_0
 
         # Compute aggregates
 
         # aggregate output
-        self.Yy0 = self.Y0.sum()
+        self.total_output_0 = self.output_0.sum()
         # aggregate demand
-        self.XXp0 = self.Xp0.sum()
+        self.total_consumption_household_0_0 = self.consumption_household_0.sum()
         # aggregate investment
-        self.XXv0 = self.Xv0.sum()
+        self.total_investment_demand_0 = self.investment_demand_0.sum()
         # aggregate government spending
-        self.XXg0 = self.Xg0.sum()
+        self.total_consumption_government_0 = self.consumption_government_0.sum()
         # aggregate imports
-        self.Mm0 = self.M0.sum()
+        self.total_import_0 = self.import_0.sum()
         # aggregate exports
-        self.Ee0 = self.E0.sum()
+        self.total_export_0 = self.export_0.sum()
         # aggregate gross domestic product
-        self.Gdp0 = (self.XXp0 + self.XXv0 + self.XXg0 + self.Ee0 -
-                     self.Mm0)
+        self.Gdp0 = (self.total_output_0 + self.total_consumption_household_0_0 
+                     + self.total_consumption_government_0 + self.total_export_0 -
+                     self.total_import_0)
         # growth rate of capital stock
-        self.g = self.XXv0 / self.Kk0
+        self.growth_rate = self.total_investment_demand_0 / self.capital_0
         # interest rate
-        self.R0 = self.Ff0['CAP'] / self.Kk0
+        self.interest_rate_0 = self.factor_endowment_0['CAP'] / self.capital_0
 
         # export price index
-        self.pWe = np.ones(len(ind))
-        self.pWe = Series(self.pWe, index=list(ind))
+        self.export_price_index  = np.ones(len(industry))
+        self.export_price_index = Series(self.export_price_index, index=list(industry))
         # import price index
-        self.pWm = np.ones(len(ind))
-        self.pWm = Series(self.pWm, index=list(ind))
+        self.import_price_index  = np.ones(len(industry))
+        self.import_price_index = Series(self.import_price_index, index=list(industry))
 
 
 class parameters(object):
@@ -115,7 +117,7 @@ class parameters(object):
             CGE model.
     '''
 
-    def __init__(self, d, ind):
+    def __init__(self, data, ind):
 
         # elasticity of substitution
         self.sigma = ([3, 1.2, 3, 3])
@@ -150,22 +152,22 @@ class parameters(object):
         self.lam = self.lam['INV']
 
         # production tax rate
-        self.tauz = d.Tz0 / d.Z0
-        self.tauz = self.tauz.loc['ACT']
+        self.production_tax_rate = d.Tz0 / d.Z0
+        self.production_tax_rate = self.production_tax_rate.loc['ACT']
         # import tariff rate
-        self.taum = d.Tm0 / d.M0
+        self.taum = d.Timport_0 / d.import_0
         self.taum = self.taum.loc['IDT']
 
         # share parameter in Armington function
-        self.deltam = ((1 + self.taum) * d.M0 ** (1 - self.eta) /
-                       ((1 + self.taum) * d.M0 ** (1 - self.eta) + d.D0
+        self.deltam = ((1 + self.taum) * d.import_0 ** (1 - self.eta) /
+                       ((1 + self.taum) * d.import_0 ** (1 - self.eta) + d.D0
                         ** (1 - self.eta)))
         self.deltad = (d.D0 ** (1 - self.eta) /
-                       ((1 + self.taum) * d.M0 ** (1 - self.eta) + d.D0
+                       ((1 + self.taum) * d.import_0 ** (1 - self.eta) + d.D0
                         ** (1 - self.eta)))
 
         # scale parameter in Armington function
-        self.gamma = (d.Q0 / (self.deltam * d.M0 ** self.eta +
+        self.gamma = (d.domestic_supply_0 / (self.deltam * d.import_0 ** self.eta +
                               self.deltad * d.D0 ** self.eta) **
                       (1 / self.eta))
 
@@ -182,14 +184,14 @@ class parameters(object):
         # average propensity to save
         self.ssp = (d.Sp0.values / (d.Ff0.sum() - d.Fsh0.values +
                                     d.Trf0.values))
-        self.ssp = np.ndarray(self.ssp)
+        self.ssp = self.ssp[0]
         # direct tax rate
         self.taud = d.Td0.values / d.Ff0.sum()
-        self.taud = np.ndarray(self.taud)
+        self.taud = np.array(self.taud)
         # transfer rate
         self.tautr = d.Trf0.values / d.Ff0['LAB']
-        self.tautr = np.ndarray(self.tautr)
+        self.tautr = np.array(self.tautr)
         # government revenue
-        self.ginc = d.Td0 + d.Tz0.sum() + d.Tm0.sum()
+        self.ginc = d.Td0 + d.Tz0.sum() + d.Timport_0.sum()
         # household income
         self.hinc = d.Ff0.sum()

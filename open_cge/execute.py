@@ -125,7 +125,7 @@ def runner():
         Trf = gov.eqTrf(p.tautr, pfprime, Ffbar)
         Kf = agg.eqKf(Kk, Kdbar)
         Fsh = firms.eqFsh(R, Kf, er)
-        Sp = agg.eqSp(p.ssp, pfprime, Ffbar, Fsh, Trf)
+        Sp = agg.eqSp(p.ssp, pfprime, Ffbar, Fsh, Trf)[0]
         I = hh.eqI(pfprime, Ffbar, Sp, Td, Fsh, Trf)
         E = firms.eqE(p.theta, p.xie, p.tauz, p.phi, pz, pe, Zbar)
         D = firms.eqDex(p.theta, p.xid, p.tauz, p.phi, pz, pdbar, Zbar)
