@@ -71,16 +71,16 @@ class model_data(object):
                   self.consumption_government_0['GOV'] + self.investment_demand_0['INV']
                    + self.intermediate_input_0.sum(axis=1))
         # production tax rate
-        production_tax_rate = self.tax_production_0 / self.output_0
+        self.production_tax_rate = self.tax_production_0 / self.output_0
         # domestic tax rate
-        self.domestic_tax_rate = (1 + production_tax_rate.loc['ACT']) * self.output_0 - self.export_0
+        self.domestic_tax_rate = (1 + self.production_tax_rate.loc['ACT']) * self.output_0 - self.export_0
 
         # Compute aggregates
 
         # aggregate output
         self.total_output_0 = self.output_0.sum()
         # aggregate demand
-        self.total_consumption_household_0_0 = self.consumption_household_0.sum()
+        self.total_consumption_household_0 = self.consumption_household_0.sum()
         # aggregate investment
         self.total_investment_demand_0 = self.investment_demand_0.sum()
         # aggregate government spending
@@ -90,7 +90,7 @@ class model_data(object):
         # aggregate exports
         self.total_export_0 = self.export_0.sum()
         # aggregate gross domestic product
-        self.Gdp0 = (self.total_output_0 + self.total_consumption_household_0_0 
+        self.Gdp0 = (self.total_output_0 + self.total_consumption_household_0 
                      + self.total_consumption_government_0 + self.total_export_0 -
                      self.total_import_0)
         # growth rate of capital stock
@@ -117,81 +117,81 @@ class parameters(object):
             CGE model.
     '''
 
-    def __init__(self, data, ind):
+    def __init__(self, data, industry):
 
         # elasticity of substitution
         self.sigma = ([3, 1.2, 3, 3])
-        self.sigma = Series(self.sigma, index=list(ind))
+        self.sigma = Series(self.sigma, index=list(industry))
         # substitution elasticity parameter
         self.eta = (self.sigma - 1) / self.sigma
 
         # elasticity of transformation
         self.psi = ([3, 1.2, 3, 3])
-        self.psi = Series(self.psi, index=list(ind))
+        self.psi = Series(self.psi, index=list(industry))
         # transformation elasticity parameter
         self.phi = (self.psi + 1) / self.psi
 
         # share parameter in utility function
-        self.alpha = d.Xp0 / d.XXp0
+        self.alpha = data.consumption_household_0 / data.total_consumption_household_0
         self.alpha = self.alpha['HOH']
         # share parameter in production function
-        self.beta = d.F0 / d.Y0
-        temp = d.F0 ** self.beta
+        self.beta = data.factor_0 / data.composite_factor_0
+        temp = data.factor_0 ** self.beta
         # scale parameter in production function
-        self.b = d.Y0 / temp.prod(axis=0)
+        self.b = data.composite_factor_0 / temp.prod(axis=0)
 
         # intermediate input requirement coefficient
-        self.ax = d.X0 / d.Z0
+        self.ax = data.intermediate_input_0 / data.output_0
         # composite factor input requirement coefficient
-        self.ay = d.Y0 / d.Z0
-        self.mu = d.Xg0 / d.XXg0
+        self.ay = data.composite_factor_0 / data.output_0
+        self.mu = data.consumption_government_0 / data.total_consumption_government_0
         # government consumption share
         self.mu = self.mu['GOV']
-        self.lam = d.Xv0 / d.XXv0
+        self.lam = data.investment_demand_0 / data.total_investment_demand_0
         # investment demand share
         self.lam = self.lam['INV']
 
         # production tax rate
-        self.production_tax_rate = d.Tz0 / d.Z0
-        self.production_tax_rate = self.production_tax_rate.loc['ACT']
+        self.production_tax_rate = data.total_output_0 / data.output_0
+        # self.production_tax_rate = self.production_tax_rate.loc['ACT']
         # import tariff rate
-        self.taum = d.Timport_0 / d.import_0
-        self.taum = self.taum.loc['IDT']
+        self.taum = data.total_import_0 / data.import_0
+        # self.taum = self.taum.loc['IDT']
 
         # share parameter in Armington function
-        self.deltam = ((1 + self.taum) * d.import_0 ** (1 - self.eta) /
-                       ((1 + self.taum) * d.import_0 ** (1 - self.eta) + d.D0
+        self.deltam = ((1 + self.taum) * data.import_0 ** (1 - self.eta) /
+                       ((1 + self.taum) * data.import_0 ** (1 - self.eta) + data.domestic_tax_rate
                         ** (1 - self.eta)))
-        self.deltad = (d.D0 ** (1 - self.eta) /
-                       ((1 + self.taum) * d.import_0 ** (1 - self.eta) + d.D0
+        self.deltad = (data.domestic_tax_rate ** (1 - self.eta) /
+                       ((1 + self.taum) * data.import_0 ** (1 - self.eta) + data.domestic_tax_rate
                         ** (1 - self.eta)))
 
         # scale parameter in Armington function
-        self.gamma = (d.domestic_supply_0 / (self.deltam * d.import_0 ** self.eta +
-                              self.deltad * d.D0 ** self.eta) **
+        self.gamma = (data.domestic_supply_0 / (self.deltam * data.import_0 ** self.eta +
+                              self.deltad * data.domestic_tax_rate ** self.eta) **
                       (1 / self.eta))
 
         # share parameter in transformation function
-        self.xie = (d.E0 ** (1 - self.phi) / (d.E0 ** (1 - self.phi) +
-                                              d.D0 ** (1 - self.phi)))
-        self.xid = (d.D0 ** (1 - self.phi) / (d.E0 ** (1 - self.phi) +
-                                              d.D0 ** (1 - self.phi)))
+        self.xie = (data.total_export_0 ** (1 - self.phi) / (data.total_export_0 ** (1 - self.phi) +
+                                              data.domestic_tax_rate ** (1 - self.phi)))
+        self.xid = (data.domestic_tax_rate ** (1 - self.phi) / (data.total_export_0 ** (1 - self.phi) +
+                                              data.domestic_tax_rate ** (1 - self.phi)))
 
         # scale parameter in transformation function
-        self.theta = (d.Z0 / (self.xie * d.E0 ** self.phi + self.xid *
-                              d.D0 ** self.phi) ** (1 / self.phi))
+        self.theta = (data.output_0 / (self.xie * data.total_export_0 ** self.phi + self.xid *
+                              data.domestic_tax_rate ** self.phi) ** (1 / self.phi))
 
         # average propensity to save
-        self.ssp = (d.Sp0.values / (d.Ff0.sum() - d.Fsh0.values +
-                                    d.Trf0.values))
-        self.ssp = self.ssp[0]
+        self.ssp = (data.saving_private_0.values / (data.factor_endowment_0.sum() - data.profit_repatriation_0.values +
+                                    data.transfer_0.values))
+        self.ssp = self.ssp
         # direct tax rate
-        self.taud = d.Td0.values / d.Ff0.sum()
+        self.taud = data.tax_direct0.values / data.factor_endowment_0.sum()
         self.taud = np.array(self.taud)
         # transfer rate
-        self.tautr = d.Trf0.values / d.Ff0['LAB']
+        self.tautr = data.transfer_0.values / data.factor_endowment_0['LAB']
         self.tautr = np.array(self.tautr)
         # government revenue
-        self.ginc = d.Td0 + d.Tz0.sum() + d.Timport_0.sum()
+        self.ginc = data.tax_direct0  + data.tax_production_0.sum() + data.total_import_0.sum()
         # household income
-        self.hinc = d.Ff0.sum()
+        self.hinc = data.factor_endowment_0.sum()

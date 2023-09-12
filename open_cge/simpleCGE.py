@@ -23,14 +23,14 @@ def cge_system(pvec, args):
     Returns:
         p_error (Numpy array): Errors from CGE equations
     '''
-    (p, d, ind, h, Z, Q, Kd, pd, Ff, R, er) = args
+    (p, data, ind, h, Z, Q, Kd, pd, Ff, R, er) = args
 
     py = pvec[0:len(ind)]
     pf = pvec[len(ind): len(ind) + len(h)]
     py = Series(py, index=list(ind))
     pf = Series(pf, index=list(h))
 
-    pm = firms.eqpm(er, d.pWm)
+    pm = firms.eqpm(er, data.import_price_index)
     pq = firms.eqpq(pm, pd, p.taum, p.eta, p.deltam, p.deltad, p.gamma)
     Kk = agg.eqKk(pf, Ff, R, p.lam, pq)
     Kf = agg.eqKf(Kk, Kd)
@@ -42,8 +42,8 @@ def cge_system(pvec, args):
     Sp = agg.eqSp(p.ssp, pf, Ff, Fsh, Trf)
     I = hh.eqI(pf, Ff, Sp, Td, Fsh, Trf)
 
-    pf_error = agg.eqpf(F, d.Ff0)
-    pk_error = agg.eqpk(F, Kk, d.Kk0, d.Ff0)
+    pf_error = agg.eqpf(F, data.factor_endowment_0)
+    pk_error = agg.eqpk(F, Kk, data.capital_0, data.factor_endowment_0)
     py_error = firms.eqpy(p.b, F, p.beta, Y)
 
     pf_error = pf_error.append(pk_error)
