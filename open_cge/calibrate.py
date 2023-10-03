@@ -184,13 +184,13 @@ class parameters(object):
         # average propensity to save
         self.ssp = (data.saving_private_0.values / (data.factor_endowment_0.sum() - data.profit_repatriation_0.values +
                                     data.transfer_0.values))
-        self.ssp = self.ssp
+        self.ssp = self.ssp.item()
         # direct tax rate
         self.taud = data.tax_direct0.values / data.factor_endowment_0.sum()
-        self.taud = np.array(self.taud)
+        self.taud = self.taud.item()
         # transfer rate
         self.tautr = data.transfer_0.values / data.factor_endowment_0['LAB']
-        self.tautr = np.array(self.tautr)
+        self.tautr = self.tautr.item()
         # government revenue
         self.ginc = data.tax_direct0  + data.tax_production_0.sum() + data.total_import_0.sum()
         # household income
