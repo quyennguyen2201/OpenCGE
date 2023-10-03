@@ -103,11 +103,11 @@ def runner():
     
     i=0
     while (dist > tpi_tol) & (tpi_iter < tpi_max_iter):
-        print(f'thist time is {i}')
+        print(f'this time is {i}')
         tpi_iter += 1
         cge_args = [parameters, data, industry, h, Zbar, Qbar, Kdbar, pdbar, Ffbar, R, er]
 
-        # print("initial guess = ", pvec)
+        print("initial guess = ", pvec)
         results = opt.root(cge.cge_system, pvec, args=cge_args, method='lm',
                            tol=1e-5)
         pprime = results.x
@@ -128,7 +128,7 @@ def runner():
         Trf = gov.eqTrf(parameters.tautr, pfprime, Ffbar)
         Kf = agg.eqKf(Kk, Kdbar)
         Fsh = firms.eqFsh(R, Kf, er)
-        Sp = agg.eqSp(parameters.ssp, pfprime, Ffbar, Fsh, Trf)[0][0]
+        Sp = agg.eqSp(parameters.ssp, pfprime, Ffbar, Fsh, Trf)
         I = hh.eqI(pfprime, Ffbar, Sp, Td, Fsh, Trf)
         E = firms.eqE(parameters.theta, parameters.xie, 
                       parameters.production_tax_rate, parameters.phi, pz, pe, Zbar)
@@ -138,13 +138,13 @@ def runner():
         Qprime = firms.eqQ(parameters.gamma, parameters.deltam, parameters.deltad, parameters.eta, M, D)
         pdprime = firms.eqpd(parameters.gamma, parameters.deltam, parameters.eta, Qprime, pq, D)
         Zprime = firms.eqZ(parameters.theta, parameters.xie, parameters.xid, parameters.phi, E, D)
-        #    Zprime = Zprime.iloc[0]
+            # Zprime = Zprime.iloc[0]
         Kdprime = agg.eqKd(data.growth_rate, Sp, parameters.lam, pq)
         Ffprime = data.factor_endowment_0
         Ffprime['CAP'] = R * Kk * (parameters.lam * pq).sum() / pfprime[1]
 
-        dist = (((Zbar - Zprime) ** 2) ** (1 / 2)).sum()
-        # print('Distance at iteration ', tpi_iter, ' is ', dist)
+        # dist = (((Zbar - Zprime) ** 2) ** (1 / 2)).sum()
+        print('Distance at iteration ', tpi_iter, ' is ', dist)
         pdbar = xi * pdprime + (1 - xi) * pdbar
         Zbar = xi * Zprime + (1 - xi) * Zbar
         Kdbar = xi * Kdprime + (1 - xi) * Kdbar
@@ -154,7 +154,6 @@ def runner():
         Q = firms.eqQ(parameters.gamma, parameters.deltam, parameters.deltad, parameters.eta, M, D)
         i = i +1 
     print('Model solved, Q = ', Q)
-
     return Q
 
 
