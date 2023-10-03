@@ -11,7 +11,7 @@ from open_cge import aggregates as agg
 from open_cge import firms
 
 
-def cge_system(pvec, args):
+def cge_system(pvec, cge_args):
     '''
     This function solves the system of equations that represents the
     CGE model.
@@ -23,7 +23,7 @@ def cge_system(pvec, args):
     Returns:
         p_error (Numpy array): Errors from CGE equations
     '''
-    (p, data, ind, h, Z, Q, Kd, pd, Ff, R, er) = args
+    (p, data, ind, h, Z, Q, Kd, pd, Ff, R, er) = cge_args
 
     py = pvec[0:len(ind)]
     pf = pvec[len(ind): len(ind) + len(h)]
@@ -58,3 +58,4 @@ def cge_system(pvec, args):
     p_error = np.append(py_error, pf_error)
 
     return p_error
+
