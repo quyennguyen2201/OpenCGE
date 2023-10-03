@@ -9,6 +9,7 @@ from open_cge import government as gov
 from open_cge import household as hh
 from open_cge import aggregates as agg
 from open_cge import firms
+import warnings
 
 
 def cge_system(pvec, cge_args):
@@ -45,8 +46,11 @@ def cge_system(pvec, cge_args):
     pf_error = agg.eqpf(F, data.factor_endowment_0)
     pk_error = agg.eqpk(F, Kk, data.capital_0, data.factor_endowment_0)
     py_error = firms.eqpy(p.b, F, p.beta, Y)
-
-    pf_error = pf_error.append(pk_error)
+    
+    # Suppress the FutureWarning
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        pf_error = pf_error.append(pk_error)
     pf_error = DataFrame(pf_error)
     pf_error = pf_error.T
     pf_error = DataFrame(pf_error, columns=list(h))
