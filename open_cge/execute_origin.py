@@ -23,7 +23,7 @@ sam = pd.read_csv(sam_path, index_col=0, header=0, encoding ='latin', on_bad_lin
 # declare sets
 u = ('AGR', 'OIL', 'IND', 'SER', 'LAB', 'CAP', 'LAND', 'NTR',
      'DTX', 'IDT', 'ACT', 'HOH', 'GOV', 'INV', 'EXT')
-industry = ('AGR', 'OIL', 'IND', 'SER')
+ind = ('AGR', 'OIL', 'IND', 'SER')
 h = ('LAB', 'CAP', 'LAND', 'NTR')
 w = ('LAB', 'LAND', 'NTR')
 
@@ -84,66 +84,64 @@ def runner():
     xi = 0.1
 
     # pvec = pvec_init
-    pvec = np.ones(len(industry) + len(h))
+    pvec = np.full(len(ind) + len(h),0.99999)
 
     # Load data and parameters classes
-    data = calibrate.model_data(sam, h, u, industry)
-    parameters = calibrate.parameters(data, industry)
+    d = calibrate.model_data(sam, h, u, ind)
+    p = calibrate.parameters(d, ind)
 
-    R = data.interest_rate_0
+    R = d.R0
     er = 1
 
-    Zbar = data.output_0
-    Ffbar = data.factor_endowment_0
-    Kdbar = data.capital_domestic_0
-    Qbar = data.domestic_supply_0
-    pdbar = pvec[0:len(industry)]
+    Zbar = d.Z0
+    Ffbar = d.Ff0
+    Kdbar = d.Kd0
+    Qbar = d.Q0
+    pdbar = pvec[0:len(ind)]
 
-    pm = firms.eqpm(er, data.import_price_index)
+    pm = firms.eqpm(er, d.pWm)
     
-    i=0
+    #save result 
+    results_list = []
     while (dist > tpi_tol) & (tpi_iter < tpi_max_iter):
-        print(f'this time is {i}')
         tpi_iter += 1
-        cge_args = [parameters, data, industry, h, Zbar, Qbar, Kdbar, pdbar, Ffbar, R, er]
+        cge_args = [p, d, ind, h, Zbar, Qbar, Kdbar, pdbar, Ffbar, R, er]
 
         print("initial guess = ", pvec)
         results = opt.root(cge.cge_system, pvec, args=cge_args, method='lm',
                            tol=1e-5)
         pprime = results.x
-        pyprime = pprime[0:len(industry)]
-        pfprime = pprime[len(industry):len(industry) + len(h)]
-        pyprime = Series(pyprime, index=list(industry))
+        pyprime = pprime[0:len(ind)]
+        pfprime = pprime[len(ind):len(ind) + len(h)]
+        pyprime = Series(pyprime, index=list(ind))
         pfprime = Series(pfprime, index=list(h))
 
         pvec = pprime
 
-        pe = firms.eqpe(er, data.export_price_index)
-        pm = firms.eqpm(er, data.import_price_index)
-        pq = firms.eqpq(pm, pdbar, parameters.taum, parameters.eta, 
-                        parameters.deltam, parameters.deltad, parameters.gamma)
-        pz = firms.eqpz(parameters.ay, parameters.ax, pyprime, pq)
-        Kk = agg.eqKk(pfprime, Ffbar, R, parameters.lam, pq)
-        Td = gov.eqTd(parameters.taud, pfprime, Ffbar)
-        Trf = gov.eqTrf(parameters.tautr, pfprime, Ffbar)
+        pe = firms.eqpe(er, d.pWe)
+        pm = firms.eqpm(er, d.pWm)
+        pq = firms.eqpq(pm, pdbar, p.taum, p.eta, p.deltam, p.deltad, p.gamma)
+        pz = firms.eqpz(p.ay, p.ax, pyprime, pq)
+        Kk = agg.eqKk(pfprime, Ffbar, R, p.lam, pq)
+        Td = gov.eqTd(p.taud, pfprime, Ffbar)
+        Trf = gov.eqTrf(p.tautr, pfprime, Ffbar)
         Kf = agg.eqKf(Kk, Kdbar)
         Fsh = firms.eqFsh(R, Kf, er)
-        Sp = agg.eqSp(parameters.ssp, pfprime, Ffbar, Fsh, Trf)
+        Sp = agg.eqSp(p.ssp, pfprime, Ffbar, Fsh, Trf)
         I = hh.eqI(pfprime, Ffbar, Sp, Td, Fsh, Trf)
-        E = firms.eqE(parameters.theta, parameters.xie, 
-                      parameters.production_tax_rate, parameters.phi, pz, pe, Zbar)
-        D = firms.eqDex(parameters.theta, parameters.xid, parameters.production_tax_rate, 
-                        parameters.phi, pz, pdbar, Zbar)
-        M = firms.eqM(parameters.gamma, parameters.deltam, parameters.eta, Qbar, pq, pm, parameters.taum)
-        Qprime = firms.eqQ(parameters.gamma, parameters.deltam, parameters.deltad, parameters.eta, M, D)
-        pdprime = firms.eqpd(parameters.gamma, parameters.deltam, parameters.eta, Qprime, pq, D)
-        Zprime = firms.eqZ(parameters.theta, parameters.xie, parameters.xid, parameters.phi, E, D)
-            # Zprime = Zprime.iloc[0]
-        Kdprime = agg.eqKd(data.growth_rate, Sp, parameters.lam, pq)
-        Ffprime = data.factor_endowment_0
-        Ffprime['CAP'] = R * Kk * (parameters.lam * pq).sum() / pfprime[1]
+        E = firms.eqE(p.theta, p.xie, p.tauz, p.phi, pz, pe, Zbar)
+        D = firms.eqDex(p.theta, p.xid, p.tauz, p.phi, pz, pdbar, Zbar)
+        M = firms.eqM(p.gamma, p.deltam, p.eta, Qbar, pq, pm, p.taum)
+        Qprime = firms.eqQ(p.gamma, p.deltam, p.deltad, p.eta, M, D)
+        pdprime = firms.eqpd(p.gamma, p.deltam, p.eta, Qprime, pq, D)
+        Zprime = firms.eqZ(p.theta, p.xie, p.xid, p.phi, E, D)
+        #    Zprime = Zprime.iloc[0]
+        Kdprime = agg.eqKd(d.g, Sp, p.lam, pq)
+        Ffprime = d.Ff0
+        # Ffprime['CAP'] = R * d.Kk * (p.lam * pq).sum() / pf[1]
+        Ffprime['CAP'] = R * Kk * (p.lam * pq).sum() / pfprime[1]
 
-        # dist = (((Zbar - Zprime) ** 2) ** (1 / 2)).sum()
+        dist = (((Zbar - Zprime) ** 2) ** (1 / 2)).sum()
         print('Distance at iteration ', tpi_iter, ' is ', dist)
         pdbar = xi * pdprime + (1 - xi) * pdbar
         Zbar = xi * Zprime + (1 - xi) * Zbar
@@ -151,10 +149,16 @@ def runner():
         Qbar = xi * Qprime + (1 - xi) * Qbar
         Ffbar = xi * Ffprime + (1 - xi) * Ffbar
 
-        Q = firms.eqQ(parameters.gamma, parameters.deltam, parameters.deltad, parameters.eta, M, D)
-        i = i +1 
+        Q = firms.eqQ(p.gamma, p.deltam, p.deltad, p.eta, M, D)
+        
+        iteration_result = {'tpi_iter':tpi_iter,'dist': dist }
+        results_list.append(iteration_result)
+        # Print the shape (optional)
+        print(len(results_list))
+    # Convert the list of dictionaries to a DataFrame
+    iteration_results = pd.DataFrame(results_list)
     print('Model solved, Q = ', Q)
-    return Q
+    return Q, iteration_results
 
 
 if __name__ == "__main__":
