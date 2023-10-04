@@ -12,7 +12,7 @@ from open_cge import government as gov
 from open_cge import household as hh
 from open_cge import aggregates as agg
 from open_cge import firms
-from open_cge import calibrate
+from open_cge import calibrate_origin
 from open_cge import simpleCGE as cge
 
 # load social accounting matrix
